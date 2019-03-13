@@ -2,19 +2,11 @@
 
 #include <cstdint>
 #include <iostream>
+#include "RV32I.h"
 
 #define slice(val, start, stop) (((val) >> (start)) & ((1 << (stop-start+1)) - 1))
 
-enum InstrType {
-	R_type,
-	I_type,
-	S_type,
-	B_type,
-	U_type,
-	J_type
-};
-
-enum OpcodeMap {
+typedef enum {
 	LOAD		= 0x03,
 	LOAD_FP		= 0x07,
 	custom_0	= 0x0B,
@@ -46,132 +38,18 @@ enum OpcodeMap {
 	SYSTEM		= 0x73,
 	reserved_2	= 0x77,
 	custom_3	= 0x7B
-};
+} OpcodeMap;
 
-enum RV32G {
-// RV32I
-	LUI,
-	AUIPC,
-	JAL,
-	JALR,
-	BEQ,
-	BNE,
-	BLT,
-	BGE,
-	BLTU,
-	BGEU,
-	LB,
-	LH,
-	LW,
-	LBU,
-	LHU,
-	SB,
-	SH,
-	SW,
-	ADDI,
-	SLTI,
-	SLTIU,
-	XORI,
-	ORI,
-	ANDI,
-	SLLI,
-	SRLI,
-	SRAI,
-	ADD,
-	SUB,
-	SLL,
-	SLT,
-	SLTU,
-	XOR,
-	SRL,
-	SRA,
-	OR,
-	AND,
-	FENCE,
-	FENCE_I,
-	ECALL,
-	EBREAK,
-	CSRRW,
-	CSRRS,
-	CSRRC,
-	CSRRWI,
-	CSRRSI,
-	CSRRCI,
+DecodeStatus decode(uint32_t code, RV32I &instr, RV32_reg &rd, RV32_reg &rs1, RV32_reg &rs2, uint32_t &imm);
 
-// RV64I
-	LWU,
-	LD,
-	SD,
-	SLLI,
-	SRLI,
-	SRAI,
-	ADDIW,
-	SLLIW,
-	SRLIW,
-	SRAIW,
-	ADDW,
-	SUBW,
-	SLLW,
-	SRLW,
-	SRAW,
+typedef enum {
+	DECODE_SUCCESS,
+	DECODE_LOAD_ERROR,
+	DECODE_MISC_MEM_ERROR,
+	DECODE_OP_IMM_ERROR,
+	DECODE_STORE_ERROR,
+	DECODE_OP_ERROR,
+	DECODE_BRANCH_ERROR,
 
-// RV32M
-	MUL,
-	MULH,
-	MULHSU,
-	MULHU,
-	DIV,
-	DIVU,
-	REM,
-	REMU,
-
-// RV64M
-	MULW,
-	DIVW,
-	DIVUW,
-	REMW,
-	REMUW,
-
-// RV32A
-	LR_W,
-	SC_W,
-	AMOSWAP_W,
-	AMOADD_W,
-	AMOXOR_W,
-	AMOAND_W,
-	AMOOR_W,
-	AMOMIN_W,
-	AMOMAX_W,
-	AMOMINU_W,
-	AMOMAXU_W
-};
-
-class Decode {
-	InstrType type;
-	uint8_t funct7;
-	uint8_t funct3;
-	OpcodeMap opcode;
-
-	void RType(uint32_t);
-	void IType(uint32_t);
-	void SType(uint32_t);
-	void BType(uint32_t);
-	void UType(uint32_t);
-	void JType(uint32_t);
-
-public:
-	RV32G instr;
-	uint8_t rs2;
-	uint8_t rs1;
-	uint8_t rd;
-	uint32_t imm;
-
-	Decode(uint32_t);
-};
-
-struct DecodeError {
-	char msg[128];
-
-	DecodeError() : msg("Unknown decode error") {}
-	DecodeError(const char *str);
-};
+	DECODE_ERROR
+} DecodeStatus;
